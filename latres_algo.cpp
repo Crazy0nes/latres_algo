@@ -66,13 +66,15 @@ PTBNode* search(PTBNode *root, int cari){
     return nullptr;
 }
 
-
-
 void preorder(PTBNode *root){
     if(root == nullptr){
        return;
     }
-    cout << root->produk.nama << " (" << root-> produk.kode << " )";
+    cout << "Kode: " <<root->produk.kode << endl;
+    cout << "Nama: " << root-> produk.nama << endl;
+    cout << "Stok: " << root-> produk.stok << endl;
+    cout << "Jenis: " << root-> produk.jenis << endl;
+    cout << "------------------------" << endl;
     preorder(root->left);
     preorder(root->right);
 }
@@ -82,7 +84,11 @@ void inorder(PTBNode *root){
         return;
     }
     inorder(root->left);
-    cout << root->produk.nama << " (" << root-> produk.kode << " )";
+    cout << "Kode: " <<root->produk.kode << endl;
+    cout << "Nama: " << root-> produk.nama << endl;
+    cout << "Stok: " << root-> produk.stok << endl;
+    cout << "Jenis: " << root-> produk.jenis << endl;
+    cout << "------------------------" << endl;
     inorder(root->right);
 }
 
@@ -92,7 +98,11 @@ void postorder(PTBNode *root){
     }
     postorder(root->left);
     postorder(root->right);
-    cout << root->produk.nama << " (" << root-> produk.kode << " )";
+    cout << "Kode: " <<root->produk.kode << endl;
+    cout << "Nama: " << root-> produk.nama << endl;
+    cout << "Stok: " << root-> produk.stok << endl;
+    cout << "Jenis: " << root-> produk.jenis << endl;
+    cout << "------------------------" << endl;
 }
 
 void deleteNode(PTBNode *&root, int hapus){
@@ -121,4 +131,130 @@ void deleteNode(PTBNode *&root, int hapus){
     }
     free(temp);
     }
+}
+
+#define MAX_STACK 100
+
+enum AksiType { TAMBAH, HAPUS };
+
+struct LogAksi {
+    AksiType aksi;
+    Produk produk;
+};
+
+struct StackAksi {
+    LogAksi data[MAX_STACK];
+    int top;
+    StackAksi() { top = -1; }
+    bool isEmpty() { return top == -1; }
+    bool isFull() { return top == MAX_STACK - 1; }
+    void push(LogAksi aksi) {
+        if (!isFull()) data[++top] = aksi;
+    }
+    LogAksi pop() {
+        if (!isEmpty()) return data[top--];
+        LogAksi dummy; dummy.aksi = TAMBAH;
+        return dummy;
+    }
+    LogAksi peek() {
+        if (!isEmpty()) return data[top];
+        LogAksi dummy; dummy.aksi = TAMBAH;
+        return dummy;
+    }
+};
+
+StackAksi aksiStack;
+
+void insertWithLog(PTBNode *&root, int valuekode, string valuenama, int valuestok, string valuejenis){
+    insert(root, valuekode, valuenama, valuestok, valuejenis);
+    Produk p; p.kode = valuekode; p.nama = valuenama; p.stok = valuestok; p.jenis = valuejenis;
+    LogAksi log; log.aksi = TAMBAH; log.produk = p;
+    aksiStack.push(log);
+}
+
+void deleteNodeWithLog(PTBNode *&root, int hapus){
+    PTBNode* node = search(root, hapus);
+    if(node != nullptr){
+        LogAksi log; log.aksi = HAPUS; log.produk = node->produk;
+        aksiStack.push(log);
+        deleteNode(root, hapus);
+    }
+}
+
+void undo(PTBNode *&root){
+    if(aksiStack.isEmpty()){
+        cout << "Tidak ada aksi untuk di-undo.\n";
+        return;
+    }
+    LogAksi last = aksiStack.pop();
+    if(last.aksi == TAMBAH){
+        deleteNode(root, last.produk.kode);
+        cout << "Undo tambah produk berhasil.\n";
+    }else if(last.aksi == HAPUS){
+        insert(root, last.produk.kode, last.produk.nama, last.produk.stok, last.produk.jenis);
+        cout << "Undo hapus produk berhasil.\n";
+    }
+}
+
+void filterJenis(PTBNode *root, string jenis){
+    if(root == nullptr) return;
+    filterJenis(root->left, jenis);
+    if(root->produk.jenis == jenis){
+        cout << "Kode: " << root->produk.kode << endl;
+        cout << "Nama: " << root->produk.nama << endl;
+        cout << "Stok: " << root->produk.stok << endl;
+        cout << "Jenis: " << root->produk.jenis << endl;
+        cout << "------------------------" << endl;
+    }
+    filterJenis(root->right, jenis);
+}
+
+int main() {
+    PTBNode* root = nullptr;
+    int pilihan;
+    do {
+        cout << "\n=== MENU MANAJEMEN GUDANG ===\n";
+        cout << "1. Tambah Produk\n";
+        cout << "2. Tampilkan Daftar Produk (Inorder)\n";
+        cout << "3. Filter Produk Berdasarkan Jenis\n";
+        cout << "4. Hapus Produk\n";
+        cout << "5. Undo Aksi Terakhir\n";
+        cout << "6. Keluar\n";
+        cout << "Pilih menu: ";
+        cin >> pilihan;
+        cin.ignore();
+
+        if (pilihan == 1) {
+            int kode, stok;
+            string nama, jenis;
+            cout << "Masukkan kode produk: "; cin >> kode; cin.ignore();
+            cout << "Masukkan nama produk: "; getline(cin, nama);
+            cout << "Masukkan stok produk: "; cin >> stok; cin.ignore();
+            cout << "Masukkan jenis produk: "; getline(cin, jenis);
+            insertWithLog(root, kode, nama, stok, jenis);
+            cout << "Produk berhasil ditambahkan.\n";
+        } else if (pilihan == 2) {
+            cout << "\n=== DAFTAR PRODUK (INORDER) ===\n";
+            inorder(root);
+        } else if (pilihan == 3) {
+            string jenis;
+            cout << "Masukkan jenis produk yang ingin difilter: ";
+            getline(cin, jenis);
+            cout << "\n=== PRODUK DENGAN JENIS: " << jenis << " ===\n";
+            filterJenis(root, jenis);
+        } else if (pilihan == 4) {
+            int kode;
+            cout << "Masukkan kode produk yang ingin dihapus: ";
+            cin >> kode; cin.ignore();
+            deleteNodeWithLog(root, kode);
+        } else if (pilihan == 5) {
+            undo(root);
+        } else if (pilihan == 6) {
+            cout << "Terima kasih!\n";
+        } else {
+            cout << "Pilihan tidak valid.\n";
+        }
+    } while (pilihan != 6);
+
+    return 0;
 }

@@ -53,7 +53,7 @@ PTBNode* search(PTBNode *root, int cari){
     while(true){
 
         if(current -> produk.kode == cari){
-            cout << cari <<"produk ditemukan" << endl;
+            cout << "Produk " << cari <<" ditemukan" << endl;
             return current;
         }
         if(cari < current->produk.kode){
@@ -92,21 +92,9 @@ void inorder(PTBNode *root){
     inorder(root->right);
 }
 
-void postorder(PTBNode *root){
-    if(root == nullptr){
-        return;
-    }
-    postorder(root->left);
-    postorder(root->right);
-    cout << "Kode: " <<root->produk.kode << endl;
-    cout << "Nama: " << root-> produk.nama << endl;
-    cout << "Stok: " << root-> produk.stok << endl;
-    cout << "Jenis: " << root-> produk.jenis << endl;
-    cout << "------------------------" << endl;
-}
-
 void deleteNode(PTBNode *&root, int hapus){
     if(root == nullptr){
+        cout << "Produk dengan kode " << hapus << " tidak ditemukan.\n";
         return;
     }
 
@@ -213,6 +201,7 @@ int main() {
     PTBNode* root = nullptr;
     int pilihan;
     do {
+        system("cls");
         cout << "\n=== MENU MANAJEMEN GUDANG ===\n";
         cout << "1. Tambah Produk\n";
         cout << "2. Tampilkan Daftar Produk (Inorder)\n";
@@ -224,35 +213,53 @@ int main() {
         cin >> pilihan;
         cin.ignore();
 
-        if (pilihan == 1) {
-            int kode, stok;
-            string nama, jenis;
-            cout << "Masukkan kode produk: "; cin >> kode; cin.ignore();
-            cout << "Masukkan nama produk: "; getline(cin, nama);
-            cout << "Masukkan stok produk: "; cin >> stok; cin.ignore();
-            cout << "Masukkan jenis produk: "; getline(cin, jenis);
-            insertWithLog(root, kode, nama, stok, jenis);
-            cout << "Produk berhasil ditambahkan.\n";
-        } else if (pilihan == 2) {
-            cout << "\n=== DAFTAR PRODUK (INORDER) ===\n";
-            inorder(root);
-        } else if (pilihan == 3) {
-            string jenis;
-            cout << "Masukkan jenis produk yang ingin difilter: ";
-            getline(cin, jenis);
-            cout << "\n=== PRODUK DENGAN JENIS: " << jenis << " ===\n";
-            filterJenis(root, jenis);
-        } else if (pilihan == 4) {
-            int kode;
-            cout << "Masukkan kode produk yang ingin dihapus: ";
-            cin >> kode; cin.ignore();
-            deleteNodeWithLog(root, kode);
-        } else if (pilihan == 5) {
-            undo(root);
-        } else if (pilihan == 6) {
-            cout << "Terima kasih!\n";
-        } else {
-            cout << "Pilihan tidak valid.\n";
+        switch(pilihan) {
+            case 1: {
+                int kode, stok;
+                string nama, jenis;
+                cout << "Masukkan kode produk: "; cin >> kode; cin.ignore();
+                cout << "Masukkan nama produk: "; getline(cin, nama);
+                cout << "Masukkan stok produk: "; cin >> stok; cin.ignore();
+                cout << "Masukkan jenis produk: "; getline(cin, jenis);
+                insertWithLog(root, kode, nama, stok, jenis);
+                cout << "Produk berhasil ditambahkan.\n";
+                system("pause");    
+                break;
+            }
+            case 2:
+                cout << "\n=== DAFTAR PRODUK ===\n";
+                inorder(root);
+                system("pause");
+                break;
+            case 3: {
+                string jenis;
+                cout << "Masukkan jenis produk yang ingin difilter: ";
+                getline(cin, jenis);
+                cout << "\n=== PRODUK DENGAN JENIS: " << jenis << " ===\n";
+                filterJenis(root, jenis);
+                system("pause");
+                break;
+            }
+            case 4: {
+                int kode;
+                cout << "Masukkan kode produk yang ingin dihapus: ";
+                cin >> kode; cin.ignore();
+                deleteNodeWithLog(root, kode);
+                cout << "Produk berhasil dihapus.\n";
+                system("pause");
+                break;
+            }
+            case 5:
+                undo(root);
+                system("pause");
+                break;
+            case 6:
+                cout << "Terima kasih!\n";
+                system("pause");
+                break;
+            default:
+                cout << "Pilihan tidak valid.\n";
+                system("pause");
         }
     } while (pilihan != 6);
 
